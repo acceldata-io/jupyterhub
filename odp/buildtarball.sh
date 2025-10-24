@@ -1,14 +1,27 @@
-python3_version="3.8"
+#!/usr/bin/env bash
+set -euo pipefail
 
-python${python3_version} -m venv env
-source env/bin/activate
-pip${python3_version} install --no-cache-dir -r requirements.txt
+PY=python3.8
+
+echo "Creating virtual environment..."
+$PY -m venv env
+
+echo "Installing requirements..."
+env/bin/python -m pip install --upgrade pip
+env/bin/python -m pip install --no-cache-dir -r requirements.txt
+
+echo "Detecting site-packages path..."
+site_packages=$(env/bin/python -c "import site; print(site.getsitepackages()[0])")
 
 # Copy custom files from scripts/site-packages to the virtual environment
-cp scripts/site-packages/yarnspawner/jupyter_labhub.py env/lib/python${python3_version}/site-packages/yarnspawner/jupyter_labhub.py
-cp scripts/site-packages/hdfscm/checkpoints.py env/lib/python${python3_version}/site-packages/hdfscm/checkpoints.py
-cp scripts/site-packages/hdfscm/hdfsmanager.py env/lib/python${python3_version}/site-packages/hdfscm/hdfsmanager.py
-cp scripts/site-packages/hdfscm/utils.py env/lib/python${python3_version}/site-packages/hdfscm/utils.py
+echo "Copying custom files to site-packages..."
+cp scripts/site-packages/yarnspawner/jupyter_labhub.py "${site_packages}/yarnspawner/jupyter_labhub.py"
+cp scripts/site-packages/hdfscm/checkpoints.py "${site_packages}/hdfscm/checkpoints.py"
+cp scripts/site-packages/hdfscm/hdfsmanager.py "${site_packages}/hdfscm/hdfsmanager.py"
+cp scripts/site-packages/hdfscm/utils.py "${site_packages}/hdfscm/utils.py"
 
-venv-pack -o jupyter-environment.tar.gz
+# Pack the environment
+echo "Packing environment..."
+env/bin/venv-pack -o jupyter-environment.tar.gz
 
+echo "Successfully created jupyter-environment.tar.gz"
