@@ -1,0 +1,49 @@
+Quick review — there are a few issues and risky spots. Summary, then specific problems + recommended fixes.
+
+Summary
+- buildtarball.sh: missing shebang, no error handling, fragile use of pip/pip3.8 and hard-coded site-packages path, and copies files that include at least one missing file.
+- requirements.txt: duplicate entries (venv-pack twice) and potential odd pins.
+- scripts/site-packages/*: hdfscm/hdfsmanager.py referenced in the build script is missing; perm_to_403 relies on exc.errno; yarnspawner/jupyter_labhub.py has fragile assumptions and no error handling.
+
+Details and recommended fixes
+
+1) buildtarball.sh
+- Add a shebang and safety flags: "#!/usr/bin/env bash" and "set -euo pipefail".
+- Use the venv's python for installs (env/bin/python -m pip install ...) rather than pip3.8 or pip3.8 executable names. Upgrade pip inside the venv.
+- Detect site-packages dynamically instead of hard-coding env/lib/python${python3_version}/site-packages. Example: site_packages=$(env/bin/python -c "import site; print(site.getsitepackages()[0])").
+- Use env/bin/venv-pack (installed inside the venv) rather than assuming a global venv-pack.
+- Add timeouts, logs, and cleanup on failure where appropriate.
+
+2) Missing file: hdfscm/hdfsmanager.py
+- The build script copies scripts/site-packages/hdfscm/hdfsmanager.py but that file is not present in this PR. Add the file or remove the copy step to avoid failures.
+
+3) requirements.txt
+- Remove the duplicate "venv-pack==0.2.0" entry (appears twice).
+- Avoid pinning pip inside requirements; upgrade pip via python -m pip in the script instead.
+- Many strict pins may cause install conflicts; consider a CI that builds the venv to surface issues.
+
+4) hdfscm/utils.py
+- perm_to_403 currently catches ArrowIOError and checks exc.errno. pyarrow.ArrowIOError may not expose errno; accessing exc.errno could raise AttributeError.
+- Recommendation: use getattr(exc, 'errno', None) or check the exception message for "Permission denied", or broaden the mapping to known permission errors and re-raise otherwise.
+
+5) hdfscm/checkpoints.py
+- Ensure the appropriate Checkpoints import is used for your runtime (notebook vs jupyter_server). The JUPYTER_ENV switch is acceptable for tests but document the runtime requirement.
+- Note that pyarrow HDFS support requires native libs; guard or document that dependency.
+
+6) yarnspawner/jupyter_labhub.py
+- application_user = os.environ["USER"] can KeyError if USER is not set; use getpass.getuser() as a safer fallback.
+- hub_auth.api_token may not always be present — add checks and clearer error handling.
+- requests.post needs a timeout and to check/raise on non-2xx responses (r.raise_for_status()).
+- Ensure the format set in JUPYTERHUB_OAUTH_ACCESS_SCOPES matches what JupyterHub expects (consider using json.dumps if a JSON string is required).
+
+7) Minor
+- Normalize root paths when calling to_fs_path and document expected values.
+- Add linting/shellcheck and CI to catch these issues early.
+
+If you'd like, I can prepare patches for:
+- A safer buildtarball.sh (shebang, venv-aware installs, dynamic site-packages, use env/bin/venv-pack).
+- Remove duplicate venv-pack from requirements.txt.
+- A safer perm_to_403 implementation.
+- Add basic error handling to yarnspawner/jupyter_labhub.py.
+
+Which of these patches should I prepare?
