@@ -22,6 +22,9 @@ cp scripts/site-packages/hdfscm/utils.py "${site_packages}/hdfscm/utils.py"
 
 # Pack the environment
 echo "Packing environment..."
-env/bin/venv-pack -o jupyter-environment.tar.gz
+# venv-pack must run from within the activated environment
+source env/bin/activate
+venv-pack -o jupyter-environment.tar.gz
+deactivate
 
 echo "Successfully created jupyter-environment.tar.gz"
