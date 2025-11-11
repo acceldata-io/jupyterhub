@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PY=python3.8
+PY=python3.11
 
 echo "Creating virtual environment..."
 $PY -m venv env
