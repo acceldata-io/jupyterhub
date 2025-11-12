@@ -23,7 +23,6 @@ from getpass import getuser
 from operator import itemgetter
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional
 from urllib.parse import unquote, urlparse, urlunparse
 
 import tornado.httpserver
@@ -32,7 +31,7 @@ from dateutil.parser import parse as parse_date
 from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PrefixLoader
 from jupyter_events.logger import EventLogger
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import contains_eager, selectinload
 from tornado import gen, web
 from tornado.httpclient import AsyncHTTPClient
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -1692,7 +1691,11 @@ class JupyterHub(Application):
         """add a url prefix to handlers"""
         for i, tup in enumerate(handlers):
             lis = list(tup)
-            lis[0] = url_path_join(prefix, tup[0])
+            if tup[0]:
+                lis[0] = url_path_join(prefix, tup[0])
+            else:
+                # the '' route should match /prefix not /prefix/
+                lis[0] = prefix.rstrip("/")
             handlers[i] = tuple(lis)
         return handlers
 
@@ -1922,7 +1925,11 @@ class JupyterHub(Application):
                 self.internal_ssl_components_trust
             )
 
-            default_alt_names = ["IP:127.0.0.1", "DNS:localhost"]
+            default_alt_names = [
+                "IP:127.0.0.1",
+                "IP:0:0:0:0:0:0:0:1",
+                "DNS:localhost",
+            ]
             if self.subdomain_host:
                 default_alt_names.append(
                     f"DNS:{urlparse(self.subdomain_host).hostname}"
@@ -1976,12 +1983,16 @@ class JupyterHub(Application):
 
             # Configure the AsyncHTTPClient. This will affect anything using
             # AsyncHTTPClient.
-            ssl_context = make_ssl_context(
-                self.internal_ssl_key,
-                self.internal_ssl_cert,
-                cafile=self.internal_ssl_ca,
+            # can't use ssl_options in case of pycurl
+            AsyncHTTPClient.configure(
+                AsyncHTTPClient.configured_class(),
+                defaults=dict(
+                    ca_certs=self.internal_ssl_ca,
+                    client_key=self.internal_ssl_key,
+                    client_cert=self.internal_ssl_cert,
+                    validate_cert=True,
+                ),
             )
-            AsyncHTTPClient.configure(None, defaults={"ssl_options": ssl_context})
 
     def init_db(self):
         """Create the database connection"""
@@ -2762,7 +2773,7 @@ class JupyterHub(Application):
         self,
         spec: Dict,
         from_config=True,
-    ) -> Optional[Service]:
+    ) -> Service | None:
         """Create the service instance and related objects from
         config data.
 
@@ -3089,9 +3100,10 @@ class JupyterHub(Application):
             .filter(orm.Spawner.server != None)
             # pre-load relationships to avoid O(N active servers) queries
             .options(
-                joinedload(orm.User._orm_spawners),
-                joinedload(orm.Spawner.server),
+                contains_eager(orm.User._orm_spawners),
+                selectinload(orm.Spawner.server),
             )
+            .populate_existing()
         ):
             # instantiate Spawner wrapper and check if it's still alive
             # spawner should be running
@@ -3320,7 +3332,7 @@ class JupyterHub(Application):
         if self.pid_file:
             self.log.debug("Writing PID %i to %s", pid, self.pid_file)
             with open(self.pid_file, 'w') as f:
-                f.write('%i' % pid)
+                f.write(str(pid))
 
     @catch_config_error
     async def initialize(self, *args, **kwargs):
@@ -3590,7 +3602,7 @@ class JupyterHub(Application):
         self,
         service_name: str,
         service: Service,
-        ssl_context: Optional[ssl.SSLContext] = None,
+        ssl_context: ssl.SSLContext | None = None,
     ) -> bool:
         """Start a managed service or poll for external service
 
@@ -3824,7 +3836,7 @@ class JupyterHub(Application):
         FIXME: If/when tornado supports the defaults in asyncio,
                remove and bump tornado requirement for py38.
         """
-        if sys.platform.startswith("win") and sys.version_info >= (3, 8):
+        if sys.platform.startswith("win"):
             try:
                 from asyncio import (
                     WindowsProactorEventLoopPolicy,
@@ -3878,6 +3890,10 @@ class JupyterHub(Application):
             tasks = [t for t in asyncio.all_tasks()]
             for t in tasks:
                 self.log.debug("Task status: %s", t)
+        self._stop_event_loop()
+
+    def _stop_event_loop(self):
+        """In a method to allow tests to not do this"""
         asyncio.get_event_loop().stop()
 
     def stop(self):

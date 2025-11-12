@@ -48,9 +48,16 @@ updates:
       # group major bumps of webpack-related dependencies
       jsx-webpack:
         patterns:
-          - "webpack*"
+          - "*webpack*"
           - "@babel/*"
           - "*-loader"
+        update-types:
+          - major
+      # group major bumps of jest-related dependencies
+      jsx-jest:
+        patterns:
+          - "*jest*"
+          - "*test*"
         update-types:
           - major
     schedule:

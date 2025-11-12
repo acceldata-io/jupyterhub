@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { debounce } from "lodash";
 import PropTypes from "prop-types";
 import ErrorAlert from "../../util/error";
+import { User, Server } from "../../util/jhapiUtil";
 
 import {
   Button,
@@ -16,7 +17,7 @@ import {
 } from "react-bootstrap";
 import ReactObjectTableViewer from "../ReactObjectTableViewer/ReactObjectTableViewer";
 
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router";
 import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 
 import "./server-dashboard.css";
@@ -41,7 +42,7 @@ const ServerDashboard = (props) => {
   let user_data = useSelector((state) => state.user_data);
   const user_page = useSelector((state) => state.user_page);
 
-  const { offset, setLimit, handleLimit, limit, setPagination } =
+  const { offset, setOffset, setLimit, handleLimit, limit } =
     usePaginationParams();
 
   const name_filter = searchParams.get("name_filter") || "";
@@ -64,12 +65,6 @@ const ServerDashboard = (props) => {
   } = props;
 
   const dispatchPageUpdate = (data, page) => {
-    // trigger page update in state
-    // in response to fetching updated user list
-    // data is list of user records
-    // page is _pagination part of response
-    // persist page info in url query
-    setPagination(page);
     // persist user data, triggers rerender
     dispatch({
       type: "USER_PAGE",
@@ -127,35 +122,47 @@ const ServerDashboard = (props) => {
     });
   };
 
-  // the callback to update the displayed user list
-  const updateUsersWithParams = (params) => {
-    if (params) {
-      if (params.offset !== undefined && params.offset < 0) {
-        params.offset = 0;
-      }
-    }
-    return updateUsers({
-      offset: offset,
-      limit,
-      name_filter,
-      sort,
-      state: state_filter,
-      ...params,
-    });
-  };
-
   // single callback to reload the page
-  // uses current state, or params can be specified if state
-  // should be updated _after_ load, e.g. offset
-  const loadPageData = (params) => {
-    return updateUsersWithParams(params)
-      .then((data) => dispatchPageUpdate(data.items, data._pagination))
-      .catch((err) => setErrorAlert("Failed to update user list."));
+  // uses current state
+  const loadPageData = () => {
+    const abortHandle = { cancelled: false };
+    (async () => {
+      try {
+        const data = await updateUsers({
+          offset,
+          limit,
+          name_filter,
+          sort,
+          state: state_filter,
+        });
+        // cancelled (e.g. param changed while waiting for response)
+        if (abortHandle.cancelled) return;
+        if (
+          data._pagination.offset &&
+          data._pagination.total <= data._pagination.offset
+        ) {
+          // reset offset if we're out of bounds,
+          // then load again
+          setOffset(0);
+          return;
+        }
+        // actually update page data
+        dispatchPageUpdate(data.items, data._pagination);
+      } catch (e) {
+        console.error("Failed to update user list.", e);
+        setErrorAlert("Failed to update user list.");
+      }
+    })();
+    // returns cancellation callback
+    return () => {
+      // cancel stale load
+      abortHandle.cancelled = true;
+    };
   };
 
   useEffect(() => {
-    loadPageData();
-  }, [limit, name_filter, sort, state_filter]);
+    return loadPageData();
+  }, [limit, name_filter, offset, sort, state_filter]);
 
   if (!user_data || !user_page) {
     return <div data-testid="no-show"></div>;
@@ -203,6 +210,15 @@ const ServerDashboard = (props) => {
     );
   };
 
+  ServerButton.propTypes = {
+    server: Server,
+    user: User,
+    action: PropTypes.string,
+    name: PropTypes.string,
+    variant: PropTypes.string,
+    extraClass: PropTypes.string,
+  };
+
   const StopServerButton = ({ server, user }) => {
     if (!server.ready) {
       return null;
@@ -216,6 +232,12 @@ const ServerDashboard = (props) => {
       extraClass: "stop-button",
     });
   };
+
+  StopServerButton.propTypes = {
+    server: Server,
+    user: User,
+  };
+
   const DeleteServerButton = ({ server, user }) => {
     if (!server.name) {
       // It's not possible to delete unnamed servers
@@ -234,6 +256,11 @@ const ServerDashboard = (props) => {
     });
   };
 
+  DeleteServerButton.propTypes = {
+    server: Server,
+    user: User,
+  };
+
   const StartServerButton = ({ server, user }) => {
     if (server.ready) {
       return null;
@@ -246,6 +273,11 @@ const ServerDashboard = (props) => {
       variant: "success",
       extraClass: "start-button",
     });
+  };
+
+  StartServerButton.propTypes = {
+    server: Server,
+    user: User,
   };
 
   const SpawnPageButton = ({ server, user }) => {
@@ -265,6 +297,11 @@ const ServerDashboard = (props) => {
     );
   };
 
+  SpawnPageButton.propTypes = {
+    server: Server,
+    user: User,
+  };
+
   const AccessServerButton = ({ server }) => {
     if (!server.ready) {
       return null;
@@ -276,6 +313,9 @@ const ServerDashboard = (props) => {
         </Button>
       </a>
     );
+  };
+  AccessServerButton.propTypes = {
+    server: Server,
   };
 
   const EditUserButton = ({ user }) => {
@@ -297,10 +337,17 @@ const ServerDashboard = (props) => {
     );
   };
 
-  const ServerRowTable = ({ data }) => {
+  EditUserButton.propTypes = {
+    user: User,
+  };
+
+  const ServerRowTable = ({ data, exclude }) => {
     const sortedData = Object.keys(data)
       .sort()
       .reduce(function (result, key) {
+        if (exclude && exclude.includes(key)) {
+          return result;
+        }
         let value = data[key];
         switch (key) {
           case "last_activity":
@@ -340,88 +387,101 @@ const ServerDashboard = (props) => {
     );
   };
 
-  const serverRow = (user, server) => {
-    const { servers, ...userNoServers } = user;
+  ServerRowTable.propTypes = {
+    data: Server,
+    exclude: PropTypes.arrayOf(PropTypes.string),
+  };
+
+  const ServerRow = ({ user, server }) => {
     const serverNameDash = server.name ? `-${server.name}` : "";
     const userServerName = user.name + serverNameDash;
     const open = collapseStates[userServerName] || false;
-    return [
-      <tr
-        key={`${userServerName}-row`}
-        data-testid={`user-row-${userServerName}`}
-        className="user-row"
-      >
-        <td data-testid="user-row-name">
-          <span>
-            <Button
-              onClick={() =>
-                setCollapseStates({
-                  ...collapseStates,
-                  [userServerName]: !open,
-                })
-              }
-              aria-controls={`${userServerName}-collapse`}
-              aria-expanded={open}
-              data-testid={`${userServerName}-collapse-button`}
-              variant={open ? "secondary" : "primary"}
-              size="sm"
-            >
-              <span className="fa fa-caret-down"></span>
-            </Button>{" "}
-          </span>
-          <span data-testid={`user-name-div-${userServerName}`}>
-            {user.name}
-          </span>
-        </td>
-        <td data-testid="user-row-admin">{user.admin ? "admin" : ""}</td>
-
-        <td data-testid="user-row-server">
-          <p className="text-secondary">{server.name}</p>
-        </td>
-        <td data-testid="user-row-last-activity">
-          {server.last_activity ? timeSince(server.last_activity) : "Never"}
-        </td>
-        <td data-testid="user-row-server-activity" className="actions">
-          <StartServerButton server={server} user={user} />
-          <StopServerButton server={server} user={user} />
-          <DeleteServerButton server={server} user={user} />
-          <AccessServerButton server={server} />
-          <SpawnPageButton server={server} user={user} />
-          <EditUserButton user={user} />
-        </td>
-      </tr>,
-      <tr key={`${userServerName}-detail`}>
-        <td
-          colSpan={6}
-          style={{ padding: 0 }}
-          data-testid={`${userServerName}-td`}
+    return (
+      <Fragment key={`${userServerName}-row`}>
+        <tr
+          key={`${userServerName}-row`}
+          data-testid={`user-row-${userServerName}`}
+          className="user-row"
         >
-          <Collapse in={open} data-testid={`${userServerName}-collapse`}>
-            <CardGroup
-              id={`${userServerName}-card-group`}
-              style={{ width: "100%", margin: "0 auto", float: "none" }}
-            >
-              <Card style={{ width: "100%", padding: 3, margin: "0 auto" }}>
-                <Card.Title>User</Card.Title>
-                <ServerRowTable data={userNoServers} />
-              </Card>
-              <Card style={{ width: "100%", padding: 3, margin: "0 auto" }}>
-                <Card.Title>Server</Card.Title>
-                <ServerRowTable data={server} />
-              </Card>
-            </CardGroup>
-          </Collapse>
-        </td>
-      </tr>,
-    ];
+          <td data-testid="user-row-name">
+            <span>
+              <Button
+                onClick={() =>
+                  setCollapseStates({
+                    ...collapseStates,
+                    [userServerName]: !open,
+                  })
+                }
+                aria-controls={`${userServerName}-collapse`}
+                aria-expanded={open}
+                data-testid={`${userServerName}-collapse-button`}
+                variant={open ? "secondary" : "primary"}
+                size="sm"
+              >
+                <span className="fa fa-caret-down"></span>
+              </Button>{" "}
+            </span>
+            <span data-testid={`user-name-div-${userServerName}`}>
+              {user.name}
+            </span>
+          </td>
+          <td data-testid="user-row-admin">{user.admin ? "admin" : ""}</td>
+
+          <td data-testid="user-row-server">
+            <p className="text-secondary">{server.name}</p>
+          </td>
+          <td data-testid="user-row-last-activity">
+            {server.last_activity ? timeSince(server.last_activity) : "Never"}
+          </td>
+          <td data-testid="user-row-server-activity" className="actions">
+            <StartServerButton server={server} user={user} />
+            <StopServerButton server={server} user={user} />
+            <DeleteServerButton server={server} user={user} />
+            <AccessServerButton server={server} />
+            <SpawnPageButton server={server} user={user} />
+            <EditUserButton user={user} />
+          </td>
+        </tr>
+        <tr key={`${userServerName}-detail`}>
+          <td
+            colSpan={6}
+            style={{ padding: 0 }}
+            data-testid={`${userServerName}-td`}
+          >
+            <Collapse in={open} data-testid={`${userServerName}-collapse`}>
+              <CardGroup
+                id={`${userServerName}-card-group`}
+                style={{ width: "100%", margin: "0 auto", float: "none" }}
+              >
+                <Card style={{ width: "100%", padding: 3, margin: "0 auto" }}>
+                  <Card.Title>User</Card.Title>
+                  <ServerRowTable data={user} exclude={["server", "servers"]} />
+                </Card>
+                <Card style={{ width: "100%", padding: 3, margin: "0 auto" }}>
+                  <Card.Title>Server</Card.Title>
+                  <ServerRowTable data={server} />
+                </Card>
+              </CardGroup>
+            </Collapse>
+          </td>
+        </tr>
+      </Fragment>
+    );
   };
 
-  let servers = user_data.flatMap((user) => {
-    let userServers = Object.values({
+  ServerRow.propTypes = {
+    user: User,
+    server: Server,
+  };
+
+  const serverRows = user_data.flatMap((user) => {
+    const userServers = Object.values({
+      // eslint-disable-next-line react/prop-types
       "": user.server || {},
+      // eslint-disable-next-line react/prop-types
       ...(user.servers || {}),
     });
-    return userServers.map((server) => [user, server]);
+    return userServers.map((server) => ServerRow({ user, server }));
   });
 
   return (
@@ -577,20 +637,20 @@ const ServerDashboard = (props) => {
                 </Button>
               </td>
             </tr>
-            {servers.flatMap(([user, server]) => serverRow(user, server))}
+            {serverRows}
           </tbody>
         </table>
         <PaginationFooter
-          offset={offset}
+          // use user_page for display, which is what's on the page
+          // setOffset immediately updates url state and _requests_ an update
+          // but takes finite time before user_page is updated
+          offset={user_page.offset}
           limit={limit}
           visible={user_data.length}
           total={total}
-          // don't trigger via setOffset state change,
-          // which can cause infinite cycles.
-          // offset state will be set upon reply via setPagination
-          next={() => loadPageData({ offset: offset + limit })}
+          next={() => setOffset(user_page.offset + limit)}
           prev={() =>
-            loadPageData({ offset: limit > offset ? 0 : offset - limit })
+            setOffset(limit > user_page.offset ? 0 : user_page.offset - limit)
           }
           handleLimit={handleLimit}
         />
@@ -601,7 +661,7 @@ const ServerDashboard = (props) => {
 };
 
 ServerDashboard.propTypes = {
-  user_data: PropTypes.array,
+  user_data: PropTypes.arrayOf(User),
   updateUsers: PropTypes.func,
   shutdownHub: PropTypes.func,
   startServer: PropTypes.func,

@@ -17,6 +17,12 @@ from ruamel.yaml import YAML
 from sphinx.directives.other import SphinxDirective
 from sphinx.util import logging
 
+try:
+    import tomllib
+except ImportError:
+    # Before Python 3.11
+    import tomli as tomllib
+
 import jupyterhub
 from jupyterhub.app import JupyterHub
 
@@ -50,8 +56,13 @@ source_suffix = [".md"]
 default_role = "literal"
 
 docs = Path(__file__).parent.parent.absolute()
+repo_root = docs.parent
 docs_source = docs / "source"
 rest_api_yaml = docs_source / "_static" / "rest-api.yml"
+
+pyproject_toml = repo_root / "pyproject.toml"
+with pyproject_toml.open("rb") as f:
+    pyproject = tomllib.load(f)
 
 
 # -- MyST configuration ------------------------------------------------------
@@ -72,7 +83,7 @@ myst_substitutions = {
     # date example: Dev 07, 2022
     "date": datetime.date.today().strftime("%b %d, %Y").title(),
     "node_min": "12",
-    "python_min": "3.8",
+    "python_min": pyproject["project"]["requires-python"].strip(">="),
     "version": jupyterhub.__version__,
 }
 
@@ -225,6 +236,8 @@ def stage_redoc_js(app, exception):
 def setup(app):
     app.connect("build-finished", stage_redoc_js)
     app.add_css_file("custom.css")
+    # vendored from https://docs.jupyter.org/en/latest/_static/jupyter.css
+    app.add_css_file("jupyter.css")
     app.add_directive("jupyterhub-generate-config", ConfigDirective)
     app.add_directive("jupyterhub-help-all", HelpAllDirective)
     app.add_directive("jupyterhub-rest-api-links", RestAPILinksDirective)
@@ -262,6 +275,7 @@ html_static_path = ["_static"]
 
 html_theme = "jupyterhub_sphinx_theme"
 html_theme_options = {
+    "header_links_before_dropdown": 6,
     "icon_links": [
         {
             "name": "GitHub",
@@ -295,7 +309,13 @@ linkcheck_ignore = [
     r"https://linux.die.net/.*",  # linux.die.net seems to block requests from CI with 403 sometimes
     # don't check links to unpublished advisories
     r"https://github.com/jupyterhub/jupyterhub/security/advisories/.*",
+    # Occasionally blocks CI checks with 403
+    r"https://www\.mysql\.com",
+    r"https://www\.npmjs\.com",
+    # Occasionally blocks CI checks with SSL error
+    r"https://mediaspace\.msu\.edu/.*",
 ]
+
 linkcheck_anchors_ignore = [
     "/#!",
     "/#%21",
