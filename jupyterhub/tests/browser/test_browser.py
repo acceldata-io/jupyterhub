@@ -283,20 +283,21 @@ async def test_spawn_pending_progress(
         await launch_btn.click()
     # wait for progress message to appear
     progress = browser.locator("#progress-message")
-    progress_message = await progress.text_content()
     async with browser.expect_navigation(url=re.compile(".*/user/" + f"{urlname}/")):
         # wait for log messages to appear
         expected_messages = [
             "Server requested",
             "Spawning server...",
-            f"Server ready at {app.base_url}user/{urlname}/",
+            f"Server ready at {user.server_url()}",
         ]
         logs_list = []
-        while not user.spawner.ready and len(logs_list) < len(expected_messages):
+        while not user.spawner.ready and len(logs_list) <= len(expected_messages):
             logs_list = [
                 await log.text_content()
                 for log in await browser.locator("div.progress-log-event").all()
             ]
+            # Read progress_message inside the loop to get updated content
+            progress_message = await progress.text_content()
             if progress_message:
                 assert progress_message in expected_messages
             # race condition: progress_message _should_
