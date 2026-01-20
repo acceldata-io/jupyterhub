@@ -4,12 +4,15 @@ set -euo pipefail
 # Check if running on unsupported OS
 if [ -f /etc/os-release ]; then
     . /etc/os-release
-    if [ "$ID" = "centos" ] && [ "${VERSION_ID%%.*}" = "7" ]; then
+    OS_MAJOR="${VERSION_ID%%.*}"
+    
+    if [ "$ID" = "centos" ] && [ "$OS_MAJOR" = "7" ]; then
         echo "JupyterHub with Python 3.8 on CentOS 7 is not supported."
         exit 1
     fi
-    if [ "$ID" = "rhel" ] && [ "${VERSION_ID%%.*}" = "9" ]; then
-        echo "JupyterHub with Python 3.8 on RHEL 9 is not supported."
+    # RHEL 9, Rocky 9 don't have Python 3.8 packages
+    if [[ "$ID" =~ ^(rhel|rocky)$ ]] && [ "$OS_MAJOR" = "9" ]; then
+        echo "JupyterHub with Python 3.8 on ${ID} ${VERSION_ID} is not supported (Python 3.8 not available)."
         exit 1
     fi
 fi
