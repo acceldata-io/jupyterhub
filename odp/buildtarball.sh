@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Check if running on CentOS 7
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    if [ "$ID" = "centos" ] && [ "${VERSION_ID%%.*}" = "7" ]; then
+        echo "JupyterHub with Python 3.8 on CentOS 7 is not supported."
+        exit 1
+    fi
+fi
+
+# Install Python 3.8 if not available
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "${SCRIPT_DIR}/install_python38.sh"
+
 PY=python3.8
 
 echo "Creating virtual environment..."
