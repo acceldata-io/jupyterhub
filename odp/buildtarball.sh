@@ -10,6 +10,10 @@ echo "Installing requirements..."
 env/bin/python -m pip install --upgrade pip
 env/bin/python -m pip install --no-cache-dir -r requirements.txt
 
+
+echo "Installing Apache Toree kernels (Scala, SQL)..."
+env/bin/jupyter toree install --sys-prefix --interpreters=Scala,SQL --spark_home=${SPARK_HOME:-/usr/odp/current/spark3-client}
+
 echo "Detecting site-packages path..."
 site_packages=$(env/bin/python -c "import site; print(site.getsitepackages()[0])")
 
