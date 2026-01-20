@@ -10,8 +10,13 @@ if [ -f /etc/os-release ]; then
     fi
 fi
 
-# Install Python 3.8 if not available
+# Get script directory for resolving relative paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Install prerequisites
+bash "${SCRIPT_DIR}/install_prerequisites.sh"
+
+# Install Python 3.8 if not available
 bash "${SCRIPT_DIR}/install_python38.sh"
 
 PY=python3.8
