@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Check if running on CentOS 7
+# Check if running on unsupported OS
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     if [ "$ID" = "centos" ] && [ "${VERSION_ID%%.*}" = "7" ]; then
         echo "JupyterHub with Python 3.8 on CentOS 7 is not supported."
+        exit 1
+    fi
+    if [ "$ID" = "rhel" ] && [ "${VERSION_ID%%.*}" = "9" ]; then
+        echo "JupyterHub with Python 3.8 on RHEL 9 is not supported."
         exit 1
     fi
 fi
