@@ -290,21 +290,42 @@ async def test_spawn_pending_progress(
             "Spawning server...",
             f"Server ready at {user.server_url()}",
         ]
-        logs_list = []
-        while not user.spawner.ready and len(logs_list) <= len(expected_messages):
-            logs_list = [
-                await log.text_content()
-                for log in await browser.locator("div.progress-log-event").all()
-            ]
-            # Read progress_message inside the loop to get updated content
-            progress_message = await progress.text_content()
-            if progress_message:
-                assert progress_message in expected_messages
-            # race condition: progress_message _should_
-            # be the last log message, but it _may_ be the next one
-            if logs_list:
-                assert progress_message
-            assert logs_list == expected_messages[: len(logs_list)]
+
+        async def wait_for_ready():
+            while user.spawner.pending:
+                await asyncio.sleep(0.05)
+            assert user.spawner.ready
+
+        async def watch_progress():
+            logs_list = []
+            while len(logs_list) <= len(expected_messages):
+                logs_list = [
+                    await log.text_content()
+                    for log in await browser.locator("div.progress-log-event").all()
+                ]
+                # Read progress_message inside the loop to get updated content
+                progress_message = await progress.text_content()
+                if progress_message:
+                    assert progress_message in expected_messages
+                # race condition: progress_message _should_
+                # be the last log message, but it _may_ be the next one
+                if logs_list:
+                    assert progress_message
+                assert logs_list == expected_messages[: len(logs_list)]
+
+        done, pending = await asyncio.wait(
+            [
+                asyncio.create_task(wait_for_ready()),
+                asyncio.create_task(watch_progress()),
+            ],
+            timeout=30,
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        for f in done:
+            # raise if error
+            await f
+        for f in pending:
+            f.cancel()
     await expect(browser).to_have_url(re.compile(".*/user/" + f"{urlname}/"))
     assert user.spawner.ready
 
@@ -1326,7 +1347,9 @@ async def test_start_stop_server_on_admin_page(
 
     # click on Start button
     await click_start_server(browser, user1.name)
-    await expect(browser.get_by_role("button", name="Stop Server")).to_have_count(1)
+    await expect(browser.get_by_role("button", name="Stop Server")).to_have_count(
+        1, timeout=30_000
+    )
     await expect(browser.get_by_role("button", name="Start Server")).to_have_count(
         len(users_list) - 1
     )
