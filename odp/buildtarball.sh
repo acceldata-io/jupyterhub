@@ -24,7 +24,7 @@ if [ -z "${ODP_VERSION}" ]; then
     exit 1
 fi
 
-# Combined version: upstream.odp (e.g., 5.2.1.3.2.3.5-3)
+# Combined version: upstream.odp (e.g., 5.2.1.3.2.3.5-301)
 COMBINED_VERSION="${JUPYTERHUB_VERSION}.${ODP_VERSION}"
 
 # Transform for tarball naming: dots and hyphens to underscores
