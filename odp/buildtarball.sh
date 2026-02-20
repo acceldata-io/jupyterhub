@@ -61,7 +61,7 @@ bash "${SCRIPT_DIR}/install_prerequisites.sh"
 # Install Python 3.11 if not available
 bash "${SCRIPT_DIR}/install_python311.sh"
 
-PY=python3.11
+export PY=python3.11
 
 echo "Creating virtual environment..."
 $PY -m venv "${SCRIPT_DIR}/env"
