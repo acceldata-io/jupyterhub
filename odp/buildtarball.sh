@@ -80,6 +80,9 @@ cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/checkpoints.py" "${site_packages}
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/hdfsmanager.py" "${site_packages}/hdfscm/hdfsmanager.py"
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfscm/utils.py"
 
+# Install additional Jupyter kernels (Toree Scala/SQL, etc.)
+bash "${SCRIPT_DIR}/install_additional_kernels.sh"
+
 # =============================================================================
 # BUILD_INFO MANIFEST
 # =============================================================================
