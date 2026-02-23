@@ -70,6 +70,11 @@ echo "Installing requirements..."
 "${SCRIPT_DIR}/env/bin/python" -m pip install --upgrade pip
 "${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir -r "${SCRIPT_DIR}/requirements.txt"
 
+echo "Installing PyTorch (CPU-only)..."
+"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir \
+    torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 \
+    --index-url https://download.pytorch.org/whl/cpu
+
 echo "Detecting site-packages path..."
 site_packages=$("${SCRIPT_DIR}/env/bin/python" -c "import site; print(site.getsitepackages()[0])")
 
