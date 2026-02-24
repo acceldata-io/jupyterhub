@@ -60,6 +60,7 @@ jupyter-events==0.10.0
 jupyter-hdfscm==0.2.0
 jupyter-lsp==2.2.5
 jupyter_server==2.14.2
+jupyter-server-proxy==4.4.0
 jupyter_server_fileid==0.9.3
 jupyter_server_terminals==0.5.3
 jupyter-server-ydoc==1.0.0
@@ -148,6 +149,7 @@ sparkmagic==0.22.0
 SQLAlchemy==2.0.36
 sqlite-anyio==0.2.3
 stack-data==0.6.3
+streamlit==1.54.0
 tenacity==9.0.0
 terminado==0.18.1
 threadpoolctl==3.5.0

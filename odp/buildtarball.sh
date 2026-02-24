@@ -80,6 +80,14 @@ cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/checkpoints.py" "${site_packages}
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/hdfsmanager.py" "${site_packages}/hdfscm/hdfsmanager.py"
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfscm/utils.py"
 
+# Install Streamlit launcher (jupyter-server-proxy entry point for JupyterLab)
+echo "Installing Streamlit launcher package..."
+mkdir -p "${site_packages}/streamlit_launcher"
+cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/__init__.py" "${site_packages}/streamlit_launcher/__init__.py"
+cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/icon.svg" "${site_packages}/streamlit_launcher/icon.svg"
+"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir --no-deps \
+    "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/"
+
 # =============================================================================
 # BUILD_INFO MANIFEST
 # =============================================================================
