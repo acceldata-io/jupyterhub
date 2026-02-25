@@ -166,3 +166,12 @@ webencodings==0.5.1
 websocket-client==1.8.0
 wheel==0.45.0
 widgetsnbextension==4.0.13
+jupysql==0.11.1
+oracledb==3.4.2
+pyhive==0.7.0
+thrift==0.22.0
+pure-sasl==0.6.2
+thrift-sasl==0.4.3
+pykerberos==1.2.4
+trino[sqlalchemy]==0.336.0
+impyla[kerberos]==0.22.0
