@@ -61,7 +61,7 @@ bash "${SCRIPT_DIR}/install_prerequisites.sh"
 # Install Python 3.11 if not available
 bash "${SCRIPT_DIR}/install_python311.sh"
 
-PY=python3.11
+export PY=python3.11
 
 echo "Creating virtual environment..."
 $PY -m venv "${SCRIPT_DIR}/env"
@@ -79,6 +79,9 @@ cp "${SCRIPT_DIR}/scripts/site-packages/yarnspawner/jupyter_labhub.py" "${site_p
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/checkpoints.py" "${site_packages}/hdfscm/checkpoints.py"
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/hdfsmanager.py" "${site_packages}/hdfscm/hdfsmanager.py"
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfscm/utils.py"
+
+# Install additional Jupyter kernels (Toree Scala/SQL, etc.)
+bash "${SCRIPT_DIR}/install_additional_kernels.sh"
 
 # =============================================================================
 # BUILD_INFO MANIFEST

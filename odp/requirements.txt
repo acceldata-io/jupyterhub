@@ -152,6 +152,7 @@ tenacity==9.0.0
 terminado==0.18.1
 threadpoolctl==3.5.0
 tinycss2==1.4.0
+toree==0.5.0
 tornado==6.4.1
 traitlets==5.14.3
 types-python-dateutil==2.9.0.20241003
@@ -165,3 +166,12 @@ webencodings==0.5.1
 websocket-client==1.8.0
 wheel==0.45.0
 widgetsnbextension==4.0.13
+jupysql==0.11.1
+oracledb==3.4.2
+pyhive==0.7.0
+thrift==0.22.0
+pure-sasl==0.6.2
+thrift-sasl==0.4.3
+pykerberos==1.2.4
+trino[sqlalchemy]==0.336.0
+impyla[kerberos]==0.22.0
