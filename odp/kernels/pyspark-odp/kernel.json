@@ -8,7 +8,7 @@
   ],
   "env": {
     "SPARK_HOME": "/usr/odp/__ODP_VERSION__/spark3",
-    "PYSPARK_PYTHON": "__RUNTIME_PREFIX__/bin/__PY__",
+    "PYSPARK_PYTHON": "/usr/bin/__PY__",
     "PYSPARK_DRIVER_PYTHON": "__RUNTIME_PREFIX__/bin/__PY__",
     "PYTHONPATH": "/usr/odp/__ODP_VERSION__/spark3/python",
     "PATH": "/usr/odp/__ODP_VERSION__/spark3/bin:/usr/odp/__ODP_VERSION__/spark3/sbin:/usr/bin:/bin"
