@@ -1,0 +1,12 @@
+{
+  "display_name": "Sparkmagic - PySpark (via Livy)",
+  "language": "python",
+  "argv": [
+    "__RUNTIME_PREFIX__/bin/__PY__",
+    "-m", "sparkmagic.kernels.pysparkkernel.pysparkkernel",
+    "-f", "{connection_file}"
+  ],
+  "env": {
+    "SPARKMAGIC_CONF_DIR": "__RUNTIME_PREFIX__/conf/sparkmagic"
+  }
+}

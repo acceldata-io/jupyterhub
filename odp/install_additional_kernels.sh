@@ -56,6 +56,16 @@ install_kernel_template() {
     find "${dest}" -name '*.sh' -exec chmod +x {} +
 }
 
+# Copy the sparkmagic config template into the venv.
+# The deployer must update __LIVY_HOST__ and __LIVY_PORT__ in the installed
+# conf/sparkmagic/config.json to match their Livy endpoint.
+install_sparkmagic_config() {
+    local conf_src="${SCRIPT_DIR}/conf/sparkmagic"
+    local conf_dest="${ENV_DIR}/conf/sparkmagic"
+    mkdir -p "${conf_dest}"
+    cp "${conf_src}"/* "${conf_dest}/"
+}
+
 echo "============================================"
 echo "Installing Additional Jupyter Kernels"
 echo "  ODP_VERSION    = ${ODP_VERSION}"
@@ -93,6 +103,14 @@ install_kernel_template "pyspark-odp"
 echo ""
 echo "Installing SparkR kernel..."
 install_kernel_template "sparkr-odp"
+
+# --- Sparkmagic kernels (via Livy) ---
+echo ""
+echo "Installing Sparkmagic kernels..."
+install_kernel_template "sparkmagic-scala"
+install_kernel_template "sparkmagic-pyspark"
+install_kernel_template "sparkmagic-sparkr"
+
 
 echo ""
 echo "============================================"
