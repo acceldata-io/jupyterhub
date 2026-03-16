@@ -2,11 +2,7 @@
   "display_name": "Sparkmagic - Scala (via Livy)",
   "language": "scala",
   "argv": [
-    "__RUNTIME_PREFIX__/bin/__PY__",
-    "-m", "sparkmagic.kernels.sparkkernel.sparkkernel",
+    "{resource_dir}/launcher.sh",
     "-f", "{connection_file}"
-  ],
-  "env": {
-    "SPARKMAGIC_CONF_DIR": "__RUNTIME_PREFIX__/conf/sparkmagic"
-  }
+  ]
 }

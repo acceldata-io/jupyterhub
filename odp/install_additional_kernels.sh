@@ -35,6 +35,14 @@ rewrite_toree_paths() {
     echo "  Fixing paths in ${kernel_dir##*/}/  (${ENV_DIR} -> ${RUNTIME_PREFIX})"
     find "${kernel_dir}" -type f \( -name '*.json' -o -name '*.sh' \) \
         -exec sed -i "s|${ENV_DIR}|${RUNTIME_PREFIX}|g" {} +
+
+    # Replace the absolute kernel directory path in kernel.json with Jupyter's
+    # {resource_dir} variable so argv resolves correctly on YARN worker nodes
+    # where the environment tarball is extracted to a different location.
+    local kernel_name
+    kernel_name=$(basename "${kernel_dir}")
+    sed -i "s|${RUNTIME_PREFIX}/share/jupyter/kernels/${kernel_name}|{resource_dir}|g" \
+        "${kernel_dir}/kernel.json"
 }
 
 # Copy a kernel template directory into the venv, replacing placeholders:
@@ -111,6 +119,10 @@ install_kernel_template "sparkmagic-scala"
 install_kernel_template "sparkmagic-pyspark"
 install_kernel_template "sparkmagic-sparkr"
 
+# --- Sparkmagic config ---
+echo ""
+echo "Installing Sparkmagic config template (update __LIVY_HOST__/__LIVY_PORT__ after deployment)..."
+install_sparkmagic_config
 
 echo ""
 echo "============================================"
