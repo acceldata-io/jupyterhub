@@ -70,6 +70,11 @@ echo "Installing requirements..."
 "${SCRIPT_DIR}/env/bin/python" -m pip install --upgrade pip
 "${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir -r "${SCRIPT_DIR}/requirements.txt"
 
+echo "Installing PyTorch (CPU-only)..."
+"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir \
+    torch==2.10.0 torchvision==0.25.0 torchaudio==2.10.0 \
+    --index-url https://download.pytorch.org/whl/cpu
+
 echo "Detecting site-packages path..."
 site_packages=$("${SCRIPT_DIR}/env/bin/python" -c "import site; print(site.getsitepackages()[0])")
 
@@ -82,6 +87,14 @@ cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfsc
 
 # Install additional Jupyter kernels (Toree Scala/SQL, etc.)
 bash "${SCRIPT_DIR}/install_additional_kernels.sh"
+
+# Install Streamlit launcher (jupyter-server-proxy entry point for JupyterLab)
+echo "Installing Streamlit launcher package..."
+mkdir -p "${site_packages}/streamlit_launcher"
+cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/__init__.py" "${site_packages}/streamlit_launcher/__init__.py"
+cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/icon.svg" "${site_packages}/streamlit_launcher/icon.svg"
+"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir --no-deps \
+    "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/"
 
 # =============================================================================
 # BUILD_INFO MANIFEST
