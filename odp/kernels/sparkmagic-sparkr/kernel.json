@@ -1,0 +1,8 @@
+{
+  "display_name": "Sparkmagic - SparkR (via Livy)",
+  "language": "r",
+  "argv": [
+    "{resource_dir}/launcher.sh",
+    "-f", "{connection_file}"
+  ]
+}

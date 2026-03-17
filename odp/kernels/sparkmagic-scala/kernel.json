@@ -1,0 +1,8 @@
+{
+  "display_name": "Sparkmagic - Scala (via Livy)",
+  "language": "scala",
+  "argv": [
+    "{resource_dir}/launcher.sh",
+    "-f", "{connection_file}"
+  ]
+}

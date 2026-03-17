@@ -1,0 +1,16 @@
+{
+  "display_name": "SparkR (ODP Spark 3)",
+  "language": "R",
+  "argv": [
+    "/usr/lib64/R/bin/R",
+    "--slave",
+    "-e", "IRkernel::main()",
+    "--args", "{connection_file}"
+  ],
+  "env": {
+    "SPARK_HOME": "/usr/odp/__ODP_VERSION__/spark3",
+    "R_LIBS_SITE": "/usr/odp/__ODP_VERSION__/spark3/R/lib",
+    "PATH": "/usr/odp/__ODP_VERSION__/spark3/bin:/usr/bin:/bin",
+    "JAVA_HOME": "/usr/lib/jvm/java"
+  }
+}

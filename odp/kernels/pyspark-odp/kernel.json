@@ -1,0 +1,8 @@
+{
+  "display_name": "PySpark (ODP Spark 3)",
+  "language": "python",
+  "argv": [
+    "{resource_dir}/launcher.sh",
+    "-f", "{connection_file}"
+  ]
+}

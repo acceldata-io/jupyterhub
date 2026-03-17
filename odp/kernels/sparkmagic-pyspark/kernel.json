@@ -1,0 +1,8 @@
+{
+  "display_name": "Sparkmagic - PySpark (via Livy)",
+  "language": "python",
+  "argv": [
+    "{resource_dir}/launcher.sh",
+    "-f", "{connection_file}"
+  ]
+}
