@@ -85,6 +85,7 @@ jupyter-events==0.12.1
 jupyter-hdfscm==0.2.0
 jupyter-lsp==2.3.1
 jupyter-server==2.20.0
+jupyter-server-proxy==4.4.0
 jupyter-server-fileid==0.9.3
 jupyter-server-terminals==0.5.4
 jupyter-server-ydoc==2.4.1
@@ -205,6 +206,7 @@ sqlparse==0.5.5
 stack-data==0.6.3
 starlette==1.3.1
 streamlit==1.59.1
+streamlit==1.54.0
 sudospawner==1.0.0
 tenacity==9.1.4
 tensorboard==2.21.0
