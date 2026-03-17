@@ -165,6 +165,7 @@ sparkmagic==0.22.0
 SQLAlchemy==2.0.36
 sqlite-anyio==0.2.3
 stack-data==0.6.3
+sudospawner==1.0.0
 tenacity==9.0.0
 tensorboard==2.20.0
 tensorboard-data-server==0.7.2
