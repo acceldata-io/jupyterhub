@@ -85,20 +85,21 @@ cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/checkpoints.py" "${site_packages}
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/hdfsmanager.py" "${site_packages}/hdfscm/hdfsmanager.py"
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfscm/utils.py"
 
-# Install Streamlit config bridge: a .pth file triggers _streamlit_env.py on
-# every Python startup, which reads <venv>/conf/streamlit/config.toml (managed
-# by Ambari) and exports the values as STREAMLIT_* env vars.
-echo "Installing Streamlit config bridge..."
-cp "${SCRIPT_DIR}/scripts/site-packages/_streamlit_env.py" "${site_packages}/_streamlit_env.py"
-echo "import _streamlit_env" > "${site_packages}/streamlit-env.pth"
+# Source Streamlit env vars from the venv activate script.
+# Ambari renders streamlit-env.sh at <venv>/conf/streamlit/streamlit-env.sh
+# with the STREAMLIT_* exports.  We hook into activate so every shell (and
+# every "streamlit run") picks them up automatically.
+echo "Hooking Streamlit env into activate script..."
+mkdir -p "${SCRIPT_DIR}/env/conf/streamlit"
+cat >> "${SCRIPT_DIR}/env/bin/activate" <<'EOF'
 
-# Install Streamlit launcher (jupyter-server-proxy entry point for JupyterLab)
-echo "Installing Streamlit launcher package..."
-mkdir -p "${site_packages}/streamlit_launcher"
-cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/__init__.py" "${site_packages}/streamlit_launcher/__init__.py"
-cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/icon.svg" "${site_packages}/streamlit_launcher/icon.svg"
-"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir --no-deps \
-    "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/"
+# --- Streamlit env vars (managed by Ambari) ---
+_STREAMLIT_ENV="$(dirname "$VIRTUAL_ENV/.")/conf/streamlit/streamlit-env.sh"
+if [ -f "$_STREAMLIT_ENV" ]; then
+    . "$_STREAMLIT_ENV"
+fi
+unset _STREAMLIT_ENV
+EOF
 
 # =============================================================================
 # BUILD_INFO MANIFEST
