@@ -85,6 +85,13 @@ cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/checkpoints.py" "${site_packages}
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/hdfsmanager.py" "${site_packages}/hdfscm/hdfsmanager.py"
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfscm/utils.py"
 
+# Install Streamlit config bridge: a .pth file triggers _streamlit_env.py on
+# every Python startup, which reads <venv>/conf/streamlit/config.toml (managed
+# by Ambari) and exports the values as STREAMLIT_* env vars.
+echo "Installing Streamlit config bridge..."
+cp "${SCRIPT_DIR}/scripts/site-packages/_streamlit_env.py" "${site_packages}/_streamlit_env.py"
+echo "import _streamlit_env" > "${site_packages}/streamlit-env.pth"
+
 # Install Streamlit launcher (jupyter-server-proxy entry point for JupyterLab)
 echo "Installing Streamlit launcher package..."
 mkdir -p "${site_packages}/streamlit_launcher"
