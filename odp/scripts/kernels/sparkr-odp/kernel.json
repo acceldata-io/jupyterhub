@@ -1,0 +1,8 @@
+{
+  "display_name": "SparkR",
+  "language": "R",
+  "argv": [
+    "{resource_dir}/../../../sparkr-launcher.sh",
+    "{connection_file}"
+  ]
+}

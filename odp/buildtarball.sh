@@ -94,8 +94,58 @@ cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/icon.svg" "${site_pac
     "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/"
 
 # =============================================================================
+# MULTI-SPARK KERNEL LAUNCHERS AND KERNEL SPECS
+# =============================================================================
+# Kernel specs use {resource_dir} placeholder which Jupyter resolves at runtime.
+# This makes kernels portable across LocalSpawner and YarnSpawner modes.
+
+echo "Installing multi-Spark launcher scripts..."
+cp "${SCRIPT_DIR}/scripts/launchers/pyspark-launcher.sh" "${SCRIPT_DIR}/env/pyspark-launcher.sh"
+cp "${SCRIPT_DIR}/scripts/launchers/sparkr-launcher.sh" "${SCRIPT_DIR}/env/sparkr-launcher.sh"
+chmod +x "${SCRIPT_DIR}/env/pyspark-launcher.sh" "${SCRIPT_DIR}/env/sparkr-launcher.sh"
+
+KERNEL_DIR="${SCRIPT_DIR}/env/share/jupyter/kernels"
+mkdir -p "${KERNEL_DIR}"
+
+# Install Apache Toree (provides the bin/run.sh launcher)
+echo "Installing Apache Toree..."
+"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir toree
+
+# Install Toree to get the bin/run.sh scripts, then replace kernel.json with our versions
+echo "Installing Toree kernel launchers..."
+"${SCRIPT_DIR}/env/bin/jupyter" toree install \
+    --sys-prefix \
+    --interpreters=Scala,SQL \
+    --spark_home=/usr/odp/current/spark3-client \
+    --spark_opts="--conf spark.sql.catalogImplementation=hive"
+
+# Copy all kernel specs (uses {resource_dir} for portable paths)
+echo "Installing kernel specifications..."
+for kernel in pyspark-odp sparkr-odp sql-odp apache_toree_scala apache_toree_sql; do
+    mkdir -p "${KERNEL_DIR}/${kernel}"
+    cp "${SCRIPT_DIR}/scripts/kernels/${kernel}/kernel.json" "${KERNEL_DIR}/${kernel}/kernel.json"
+    echo "  Installed kernel: ${kernel}"
+done
+
+# Verify no SPARK_HOME in kernel specs
+echo "Verifying kernel specs have no hardcoded SPARK_HOME..."
+SPARK_HOME_MATCHES=$(grep -r "SPARK_HOME" "${KERNEL_DIR}"/*/kernel.json 2>/dev/null || true)
+if [ -n "$SPARK_HOME_MATCHES" ]; then
+    echo "WARNING: Found SPARK_HOME in kernel specs (this may cause issues):"
+    echo "$SPARK_HOME_MATCHES"
+else
+    echo "  Verified: No SPARK_HOME found in kernel specs"
+fi
+
+# List installed kernels
+echo ""
+echo "Installed kernel specs:"
+"${SCRIPT_DIR}/env/bin/jupyter" kernelspec list
+
+# =============================================================================
 # BUILD_INFO MANIFEST
 # =============================================================================
+echo ""
 echo "Generating BUILD_INFO manifest..."
 
 # Detect build OS

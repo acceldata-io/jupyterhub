@@ -1,0 +1,9 @@
+{
+  "display_name": "PySpark",
+  "language": "python",
+  "argv": [
+    "{resource_dir}/../../../pyspark-launcher.sh",
+    "-f",
+    "{connection_file}"
+  ]
+}
