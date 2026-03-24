@@ -107,11 +107,7 @@ chmod +x "${SCRIPT_DIR}/env/pyspark-launcher.sh" "${SCRIPT_DIR}/env/sparkr-launc
 KERNEL_DIR="${SCRIPT_DIR}/env/share/jupyter/kernels"
 mkdir -p "${KERNEL_DIR}"
 
-# Install Apache Toree (provides the bin/run.sh launcher)
-echo "Installing Apache Toree..."
-"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir toree
-
-# Install Toree to get the bin/run.sh scripts, then replace kernel.json with our versions
+# Install Toree kernel specs (toree package installed via requirements.txt)
 echo "Installing Toree kernel launchers..."
 "${SCRIPT_DIR}/env/bin/jupyter" toree install \
     --sys-prefix \
