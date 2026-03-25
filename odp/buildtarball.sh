@@ -94,33 +94,38 @@ cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/icon.svg" "${site_pac
     "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/"
 
 # =============================================================================
-# MULTI-SPARK KERNEL LAUNCHERS AND KERNEL SPECS
+# KERNEL SPECIFICATIONS
 # =============================================================================
-# Kernel specs use {resource_dir} placeholder which Jupyter resolves at runtime.
+# Each kernel has its own launcher.sh inside the kernel directory.
+# Launchers self-locate the venv using relative paths from {resource_dir}.
 # This makes kernels portable across LocalSpawner and YarnSpawner modes.
-
-echo "Installing multi-Spark launcher scripts..."
-cp "${SCRIPT_DIR}/scripts/launchers/pyspark-launcher.sh" "${SCRIPT_DIR}/env/pyspark-launcher.sh"
-cp "${SCRIPT_DIR}/scripts/launchers/sparkr-launcher.sh" "${SCRIPT_DIR}/env/sparkr-launcher.sh"
-chmod +x "${SCRIPT_DIR}/env/pyspark-launcher.sh" "${SCRIPT_DIR}/env/sparkr-launcher.sh"
 
 KERNEL_DIR="${SCRIPT_DIR}/env/share/jupyter/kernels"
 mkdir -p "${KERNEL_DIR}"
 
 # Install Toree kernel specs (toree package installed via requirements.txt)
-echo "Installing Toree kernel launchers..."
+echo "Installing Toree kernels (Scala/SQL)..."
 "${SCRIPT_DIR}/env/bin/jupyter" toree install \
     --sys-prefix \
     --interpreters=Scala,SQL \
     --spark_home=/usr/odp/current/spark3-client \
     --spark_opts="--conf spark.sql.catalogImplementation=hive"
 
-# Copy all kernel specs (uses {resource_dir} for portable paths)
-echo "Installing kernel specifications..."
-for kernel in pyspark-odp sparkr-odp sql-odp apache_toree_scala apache_toree_sql; do
+# Copy custom kernel specs (pyspark, sparkr, sql) with their launchers
+echo "Installing custom kernel specifications..."
+for kernel in pyspark-odp sparkr-odp sql-odp; do
     mkdir -p "${KERNEL_DIR}/${kernel}"
     cp "${SCRIPT_DIR}/scripts/kernels/${kernel}/kernel.json" "${KERNEL_DIR}/${kernel}/kernel.json"
+    cp "${SCRIPT_DIR}/scripts/kernels/${kernel}/launcher.sh" "${KERNEL_DIR}/${kernel}/launcher.sh"
+    chmod +x "${KERNEL_DIR}/${kernel}/launcher.sh"
     echo "  Installed kernel: ${kernel}"
+done
+
+# Copy Toree kernel.json overrides (removes hardcoded SPARK_HOME)
+echo "Updating Toree kernel specs..."
+for kernel in apache_toree_scala apache_toree_sql; do
+    cp "${SCRIPT_DIR}/scripts/kernels/${kernel}/kernel.json" "${KERNEL_DIR}/${kernel}/kernel.json"
+    echo "  Updated kernel: ${kernel}"
 done
 
 # Verify no SPARK_HOME in kernel specs

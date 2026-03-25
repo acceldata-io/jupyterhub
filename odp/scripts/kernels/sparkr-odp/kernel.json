@@ -1,8 +1,8 @@
 {
-  "display_name": "SparkR",
+  "display_name": "SparkR (ODP Spark 3)",
   "language": "R",
   "argv": [
-    "{resource_dir}/../../../sparkr-launcher.sh",
+    "{resource_dir}/launcher.sh",
     "{connection_file}"
   ]
 }

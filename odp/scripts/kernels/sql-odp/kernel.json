@@ -2,11 +2,7 @@
   "display_name": "SQL (JupySQL)",
   "language": "python",
   "argv": [
-    "{resource_dir}/../../../bin/python3.11",
-    "-m", "ipykernel_launcher",
+    "{resource_dir}/launcher.sh",
     "-f", "{connection_file}"
-  ],
-  "env": {
-    "JUPYSQL_AUTOLOAD": "1"
-  }
+  ]
 }
