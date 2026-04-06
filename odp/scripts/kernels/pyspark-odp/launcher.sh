@@ -3,16 +3,7 @@
 # Self-locating: finds venv root by walking up to pyvenv.cfg
 
 KERNEL_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-find_venv_root() {
-  local dir="$1"
-  while [[ "$dir" != "/" ]]; do
-    [[ -f "$dir/pyvenv.cfg" ]] && { printf "%s" "$dir"; return 0; }
-    dir="$(dirname "$dir")"
-  done
-  echo "ERROR: could not find virtual environment root (pyvenv.cfg)" >&2
-  return 1
-}
+source "$(dirname "$0")/../_common.sh"
 
 VENV_ROOT="$(find_venv_root "$KERNEL_DIR")" || exit 1
 
@@ -22,6 +13,10 @@ if [[ ! -x "${VENV_ROOT}/bin/python3" ]]; then
 fi
 
 export SPARK_HOME="${SPARK_HOME:-/usr/odp/current/spark3-client}"
+
+if [[ ! -d "$SPARK_HOME" ]]; then
+  echo "WARNING: SPARK_HOME directory not found at $SPARK_HOME" >&2
+fi
 
 # Executor Python: system Python (available on all nodes)
 export PYSPARK_PYTHON="/usr/bin/python3"

@@ -96,6 +96,7 @@ KERNEL_DIR="${SCRIPT_DIR}/env/share/jupyter/kernels"
 mkdir -p "${KERNEL_DIR}"
 
 # Install Toree kernel specs (toree package installed via requirements.txt)
+# Note: --spark_home here is overwritten by custom kernel.json files that remove SPARK_HOME
 echo "Installing Toree kernels (Scala/SQL)..."
 "${SCRIPT_DIR}/env/bin/jupyter" toree install \
     --sys-prefix \

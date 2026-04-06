@@ -3,16 +3,7 @@
 # Self-locating: finds venv root by walking up to pyvenv.cfg
 
 KERNEL_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-find_venv_root() {
-  local dir="$1"
-  while [[ "$dir" != "/" ]]; do
-    [[ -f "$dir/pyvenv.cfg" ]] && { printf "%s" "$dir"; return 0; }
-    dir="$(dirname "$dir")"
-  done
-  echo "ERROR: could not find virtual environment root (pyvenv.cfg)" >&2
-  return 1
-}
+source "$(dirname "$0")/../_common.sh"
 
 VENV_ROOT="$(find_venv_root "$KERNEL_DIR")" || exit 1
 
