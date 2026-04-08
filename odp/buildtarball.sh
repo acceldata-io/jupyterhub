@@ -85,17 +85,61 @@ cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/checkpoints.py" "${site_packages}
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/hdfsmanager.py" "${site_packages}/hdfscm/hdfsmanager.py"
 cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfscm/utils.py"
 
-# Install Streamlit launcher (jupyter-server-proxy entry point for JupyterLab)
-echo "Installing Streamlit launcher package..."
-mkdir -p "${site_packages}/streamlit_launcher"
-cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/__init__.py" "${site_packages}/streamlit_launcher/__init__.py"
-cp "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/icon.svg" "${site_packages}/streamlit_launcher/icon.svg"
-"${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir --no-deps \
-    "${SCRIPT_DIR}/scripts/site-packages/streamlit_launcher/"
+# =============================================================================
+# KERNEL SPECIFICATIONS
+# =============================================================================
+# Each kernel has its own launcher.sh inside the kernel directory.
+# Launchers self-locate the venv using relative paths from {resource_dir}.
+# This makes kernels portable across LocalSpawner and YarnSpawner modes.
+
+KERNEL_DIR="${SCRIPT_DIR}/env/share/jupyter/kernels"
+mkdir -p "${KERNEL_DIR}"
+
+# Install Toree kernel specs (toree package installed via requirements.txt)
+# Note: --spark_home here is overwritten by custom kernel.json files that remove SPARK_HOME
+echo "Installing Toree kernels (Scala/SQL)..."
+"${SCRIPT_DIR}/env/bin/jupyter" toree install \
+    --sys-prefix \
+    --interpreters=Scala,SQL \
+    --spark_home=/usr/odp/current/spark3-client \
+    --spark_opts="--conf spark.sql.catalogImplementation=hive"
+
+# Copy custom kernel specs (pyspark, sparkr, sql) with their launchers
+echo "Installing custom kernel specifications..."
+for kernel in pyspark-odp sparkr-odp sql-odp; do
+    mkdir -p "${KERNEL_DIR}/${kernel}"
+    cp "${SCRIPT_DIR}/scripts/kernels/${kernel}/kernel.json" "${KERNEL_DIR}/${kernel}/kernel.json"
+    cp "${SCRIPT_DIR}/scripts/kernels/${kernel}/launcher.sh" "${KERNEL_DIR}/${kernel}/launcher.sh"
+    chmod +x "${KERNEL_DIR}/${kernel}/launcher.sh"
+    echo "  Installed kernel: ${kernel}"
+done
+
+# Copy Toree kernel.json overrides (removes hardcoded SPARK_HOME)
+echo "Updating Toree kernel specs..."
+for kernel in apache_toree_scala apache_toree_sql; do
+    cp "${SCRIPT_DIR}/scripts/kernels/${kernel}/kernel.json" "${KERNEL_DIR}/${kernel}/kernel.json"
+    echo "  Updated kernel: ${kernel}"
+done
+
+# Verify no SPARK_HOME in kernel specs
+echo "Verifying kernel specs have no hardcoded SPARK_HOME..."
+SPARK_HOME_MATCHES=$(grep -r "SPARK_HOME" "${KERNEL_DIR}"/*/kernel.json 2>/dev/null || true)
+if [ -n "$SPARK_HOME_MATCHES" ]; then
+    echo "WARNING: Found SPARK_HOME in kernel specs (this may cause issues):"
+    echo "$SPARK_HOME_MATCHES"
+else
+    echo "  Verified: No SPARK_HOME found in kernel specs"
+fi
+
+# List installed kernels
+echo ""
+echo "Installed kernel specs:"
+"${SCRIPT_DIR}/env/bin/jupyter" kernelspec list
 
 # =============================================================================
 # BUILD_INFO MANIFEST
 # =============================================================================
+echo ""
 echo "Generating BUILD_INFO manifest..."
 
 # Detect build OS
