@@ -46,8 +46,29 @@ pushd "${TOREE_BUILD_DIR}" > /dev/null
 echo "Running 'make build'..."
 make build
 
-echo "Running 'make dist'..."
-make dist
+# The upstream 'make dist' shells out to Docker for 'python setup.py sdist'.
+# We replicate those steps locally using the venv's Python instead.
+echo "Packaging Toree pip distribution (without Docker)..."
+make dist/toree
+
+BASE_VERSION=$(grep -oP '^BASE_VERSION\?=\K.*' Makefile)
+COMMIT=$(git rev-parse --short=12 --verify HEAD)
+
+mkdir -p dist/toree-pip
+cp -r dist/toree dist/toree-pip/
+cp dist/toree/LICENSE dist/toree-pip/LICENSE
+cp dist/toree/NOTICE dist/toree-pip/NOTICE
+cp dist/toree/DISCLAIMER dist/toree-pip/DISCLAIMER
+cp dist/toree/VERSION dist/toree-pip/VERSION
+cp dist/toree/RELEASE_NOTES.md dist/toree-pip/RELEASE_NOTES.md
+cp -R dist/toree/licenses dist/toree-pip/licenses
+cp -rf etc/pip_install/* dist/toree-pip/
+printf "__version__ = '${BASE_VERSION}'\n" >> dist/toree-pip/toree/_version.py
+printf "__commit__ = '${COMMIT}'\n" >> dist/toree-pip/toree/_version.py
+
+pushd dist/toree-pip > /dev/null
+"${VENV_DIR}/bin/python" setup.py sdist --dist-dir=.
+popd > /dev/null
 
 echo "Installing Toree pip package into venv..."
 "${VENV_DIR}/bin/python" -m pip install --no-cache-dir dist/toree-pip/toree-*.tar.gz
