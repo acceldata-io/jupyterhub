@@ -81,9 +81,11 @@ site_packages=$("${SCRIPT_DIR}/env/bin/python" -c "import site; print(site.getsi
 # Copy custom files from scripts/site-packages to the virtual environment
 echo "Copying custom files to site-packages..."
 cp "${SCRIPT_DIR}/scripts/site-packages/yarnspawner/jupyter_labhub.py" "${site_packages}/yarnspawner/jupyter_labhub.py"
-cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/checkpoints.py" "${site_packages}/hdfscm/checkpoints.py"
-cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/hdfsmanager.py" "${site_packages}/hdfscm/hdfsmanager.py"
-cp "${SCRIPT_DIR}/scripts/site-packages/hdfscm/utils.py" "${site_packages}/hdfscm/utils.py"
+# Build and install hdfscm from source (acceldata-io fork)
+bash "${SCRIPT_DIR}/install_hdfscm.sh" "${SCRIPT_DIR}/env"
+
+# Build and install Toree from source (acceldata-io fork with display_data fix)
+bash "${SCRIPT_DIR}/install_toree.sh" "${SCRIPT_DIR}/env"
 
 # =============================================================================
 # KERNEL SPECIFICATIONS
@@ -96,7 +98,6 @@ KERNEL_DIR="${SCRIPT_DIR}/env/share/jupyter/kernels"
 mkdir -p "${KERNEL_DIR}"
 
 # Install Toree kernel specs (toree package installed via requirements.txt)
-# Note: --spark_home here is overwritten by custom kernel.json files that remove SPARK_HOME
 echo "Installing Toree kernels (Scala/SQL)..."
 "${SCRIPT_DIR}/env/bin/jupyter" toree install \
     --sys-prefix \
