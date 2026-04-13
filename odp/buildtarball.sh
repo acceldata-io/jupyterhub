@@ -104,6 +104,10 @@ echo "Installing Toree kernels (Scala/SQL)..."
     --spark_home=/usr/odp/current/spark3-client \
     --spark_opts="--conf spark.sql.catalogImplementation=hive"
 
+# Shared helpers for custom launchers (sourced as ../_common.sh from each kernel dir)
+cp "${SCRIPT_DIR}/scripts/kernels/_common.sh" "${KERNEL_DIR}/_common.sh"
+chmod +x "${KERNEL_DIR}/_common.sh"
+
 # Copy custom kernel specs (pyspark, sparkr, sql) with their launchers
 echo "Installing custom kernel specifications..."
 for kernel in pyspark-odp sparkr-odp sql-odp; do
