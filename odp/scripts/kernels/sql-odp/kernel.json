@@ -1,0 +1,8 @@
+{
+  "display_name": "SQL (JupySQL)",
+  "language": "python",
+  "argv": [
+    "{resource_dir}/launcher.sh",
+    "-f", "{connection_file}"
+  ]
+}
