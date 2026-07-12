@@ -54,6 +54,7 @@ from ..utils import (
     get_accepted_mimetype,
     get_browser_protocol,
     maybe_future,
+    safe_log,
     url_escape_path,
     url_path_join,
     utcnow,
@@ -1040,9 +1041,7 @@ class BaseHandler(RequestHandler):
 
         if server_name:
             if '/' in server_name:
-                error_message = (
-                    f"Invalid server_name (may not contain '/'): {server_name}"
-                )
+                error_message = f"Invalid server_name (may not contain '/'): {safe_log(server_name)}"
                 self.log.error(error_message)
                 raise web.HTTPError(400, error_message)
             user_server_name = f'{user.name}:{server_name}'
@@ -1517,6 +1516,12 @@ class BaseHandler(RequestHandler):
 
     def write_error(self, status_code, **kwargs):
         """render custom error pages"""
+        # it is possible (rare) to send an error before .prepare() is called
+        # this is generally only for malformed requests at the HTTP-level
+        if not hasattr(self, '_jupyterhub_user'):
+            self._jupyterhub_user = None
+            self._resolve_roles_and_scopes()
+
         exc_info = kwargs.get('exc_info')
         message = ''
         message_html = ''
