@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "{resource_dir}/bin/run.sh",
+    "--profile",
+    "{connection_file}"
+  ],
+  "env": {
+    "DEFAULT_INTERPRETER": "SQL",
+    "__TOREE_SPARK_OPTS__": "--conf spark.sql.catalogImplementation=hive",
+    "__TOREE_OPTS__": ""
+  },
+  "display_name": "SparkSQL (Toree)",
+  "language": "sql",
+  "interrupt_mode": "signal"
+}
