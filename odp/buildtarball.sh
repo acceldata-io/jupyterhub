@@ -119,6 +119,12 @@ echo ""
 # =============================================================================
 # PACK TARBALL
 # =============================================================================
+# Remove pip from the packaged environment (PRISMA-2022-0168 / CVE-2018-20225:
+# dependency-confusion finding with no upstream fix). The tarball is a fully
+# pinned, pre-built environment; pip is not needed at runtime.
+echo "Removing pip from environment before packing..."
+"${SCRIPT_DIR}/env/bin/python" -m pip uninstall -y pip
+
 echo "Packing environment..."
 # venv-pack must run from within the activated environment
 source "${SCRIPT_DIR}/env/bin/activate"
