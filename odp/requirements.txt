@@ -152,7 +152,7 @@ python-json-logger==2.0.7
 pytz==2024.2
 PyYAML==6.0.2
 pyzmq==26.2.0
-ray==2.54.0
+ray==2.55.0
 referencing==0.35.1
 requests==2.32.4
 requests-kerberos==0.15.0
