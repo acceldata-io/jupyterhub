@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # =============================================================================
 # NOTE: JUPYTERHUB_VERSION is used only for tarball naming convention.
 # The actual JupyterHub package version is controlled by requirements.txt.
-JUPYTERHUB_VERSION="5.2.1"
+JUPYTERHUB_VERSION="5.4.5"
 
 # Read ODP version from VERSION file
 VERSION_FILE="${SCRIPT_DIR}/VERSION"
