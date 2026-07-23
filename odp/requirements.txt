@@ -133,7 +133,7 @@ pure_eval==0.2.3
 pure-sasl==0.6.2
 py4j==0.10.9.7
 pyarrow==18.0.0
-pyasn1==0.6.1
+pyasn1==0.6.3
 pycparser==2.22
 pycrdt==0.10.6
 pycrdt-websocket==0.15.1
