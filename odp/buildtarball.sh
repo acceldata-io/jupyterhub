@@ -50,18 +50,18 @@ if [ -f /etc/os-release ]; then
     OS_MAJOR="${VERSION_ID%%.*}"
     
     if [ "$ID" = "centos" ] && [ "$OS_MAJOR" = "7" ]; then
-        echo "JupyterHub with Python 3.11 on CentOS 7 is not supported."
+        echo "JupyterHub with Python 3.14 on CentOS 7 is not supported."
         exit 1
     fi
 fi
 
 # Install prerequisites
-bash "${SCRIPT_DIR}/install_prerequisites.sh"
+source "${SCRIPT_DIR}/install_prerequisites.sh"
 
-# Install Python 3.11 if not available
-bash "${SCRIPT_DIR}/install_python311.sh"
+# Install Python 3.14 if not available
+source "${SCRIPT_DIR}/install_python314.sh"
 
-PY=python3.11
+PY=python3.14
 
 echo "Creating virtual environment..."
 $PY -m venv "${SCRIPT_DIR}/env"
