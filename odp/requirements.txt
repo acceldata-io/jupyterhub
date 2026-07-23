@@ -143,7 +143,7 @@ pykerberos==1.2.4
 pydantic==2.9.2
 pydantic_core==2.23.4
 Pygments==2.18.0
-PyJWT==2.9.0
+PyJWT==2.12.0
 PyMySQL==1.1.1
 pyparsing==3.2.0
 pyspnego==0.11.2
