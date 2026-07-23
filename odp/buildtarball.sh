@@ -68,6 +68,30 @@ $PY -m venv "${SCRIPT_DIR}/env"
 
 echo "Installing requirements..."
 "${SCRIPT_DIR}/env/bin/python" -m pip install --upgrade pip
+
+# Install local build tensorflow individually
+
+# Detect build OS
+source /etc/os-release
+MAJOR_VERSION="${VERSION_ID%%.*}"
+
+case "$ID" in
+  rhel|centos|rocky|almalinux)
+    OS_TAG="rhel${MAJOR_VERSION}"
+    ;;
+  ubuntu)
+    OS_TAG="ubuntu${MAJOR_VERSION}"
+    ;;
+  *)
+    echo "Unknown OS: $ID" >&2
+    exit 1
+    ;;
+esac
+
+echo "Detected OS tag: $OS_TAG"
+
+$PY -m pip install "https://mirror-stg.odp.acceldata.dev/ODP/standalone/common_tars/tensorflow/tensorflow_cpu-2.22.0.dev0%2Bselfbuilt.${OS_TAG}-cp314-cp314-linux_x86_64.whl"
+
 "${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir -r "${SCRIPT_DIR}/requirements.txt"
 
 echo "Installing PyTorch (CPU-only)..."
