@@ -89,7 +89,7 @@ class UserListAPIHandler(APIHandler):
         user = self.users[orm_user]
         return any(spawner.ready for spawner in user.spawners.values())
 
-    @needs_scope('list:users')
+    @needs_scope('list:users', post_filter=True)
     def get(self):
         state_filter = self.get_argument("state", None)
         name_filter = self.get_argument("name_filter", None)
@@ -756,7 +756,7 @@ class UserServerAPIHandler(APIHandler):
             self.log.info(
                 f"Updating display_name for {spawner._log_name} {spawner.display_name} -> {display_name}"
             )
-            spawner.display_name = display_name
+            spawner.orm_spawner.display_name = display_name
             self.db.commit()
 
         options = body["user_options"]
