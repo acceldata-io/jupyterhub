@@ -11,13 +11,12 @@ import re
 import time
 import uuid
 import warnings
-from datetime import timedelta
 from http.client import responses
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
 from jinja2 import TemplateNotFound
 from sqlalchemy.exc import SQLAlchemyError
-from tornado import gen, web
+from tornado import web
 from tornado.httputil import HTTPHeaders, url_concat
 from tornado.ioloop import IOLoop
 from tornado.log import app_log
@@ -60,6 +59,7 @@ from ..utils import (
     url_escape_path,
     url_path_join,
     utcnow,
+    wait_for_shielded,
 )
 
 # pattern for the authentication token header
@@ -942,6 +942,8 @@ class BaseHandler(RequestHandler):
         # Only set `admin` if the authenticator returned an explicit value.
         if admin is not None and admin != user.admin:
             user.admin = admin
+        if user_info is not None:
+            user.user_info = user_info
         # always ensure default roles ('user', 'admin' if admin) are assigned
         # after a successful login
         roles.assign_default_roles(self.db, entity=user)
@@ -1254,10 +1256,9 @@ class BaseHandler(RequestHandler):
                 IOLoop.current().call_later(2, abort)
 
         finish_spawn_future.add_done_callback(_track_failure_count)
-
         try:
-            await gen.with_timeout(
-                timedelta(seconds=self.slow_spawn_timeout), finish_spawn_future
+            await wait_for_shielded(
+                finish_spawn_future, timeout=self.slow_spawn_timeout
             )
         except AnyTimeoutError:
             # waiting_for_response indicates server process has started,
@@ -1293,10 +1294,8 @@ class BaseHandler(RequestHandler):
                 # this avoids storing the generic 500 error as the spawn failure,
                 # when the original may be more informative
                 try:
-                    await asyncio.wait_for(
-                        asyncio.shield(finish_spawn_future), timeout=1
-                    )
-                except TimeoutError:
+                    await wait_for_shielded(finish_spawn_future, timeout=1)
+                except AnyTimeoutError:
                     pass
 
                 if finish_spawn_future.exception():
@@ -1431,7 +1430,7 @@ class BaseHandler(RequestHandler):
         future = spawner._stop_future = asyncio.ensure_future(stop())
 
         try:
-            await gen.with_timeout(timedelta(seconds=self.slow_stop_timeout), future)
+            await wait_for_shielded(future, timeout=self.slow_stop_timeout)
         except AnyTimeoutError:
             # hit timeout, but stop is still pending
             self.log.warning(
