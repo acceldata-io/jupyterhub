@@ -39,8 +39,7 @@ fastjsonschema==2.21.2
 filelock==3.29.7
 findspark==2.0.1
 flatbuffers==25.12.19
-# Fonttools, but with the Critical CVE patched out
-git+https://github.com/acceldata-io/fonttools.git@ODP-4.45.1
+fonttools==4.60.2
 fqdn==1.5.1
 future==1.0.0
 gast==0.7.0
