@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # NOTE: JUPYTERHUB_VERSION is used only for tarball naming convention.
 # The actual JupyterHub package version is controlled by requirements.txt.
 JUPYTERHUB_VERSION="5.5.0"
+PY_TAG=$(python3 -c 'import sys; print(f"{sys.version_info.major}{sys.version_info.minor}")')   # 311, 312, 313, 314
 
 # Read ODP version from VERSION file
 VERSION_FILE="${SCRIPT_DIR}/VERSION"
@@ -88,7 +89,15 @@ esac
 
 echo "Detected OS tag: $OS_TAG"
 
-python -m pip install "https://mirror-stg.odp.acceldata.dev/ODP/standalone/common_tars/tensorflow/tensorflow_cpu-2.22.0.dev0%2Bselfbuilt.${OS_TAG}-cp314-cp314-linux_x86_64.whl"
+case "PY_TAG" in
+    314)
+        python -m pip install \
+            "https://mirror-stg.odp.acceldata.dev/ODP/standalone/common_tars/tensorflow/tensorflow_cpu-2.22.0.dev0%2Bselfbuilt.${OS_TAG}-cp314-cp314-linux_x86_64.whl"
+        ;;
+    *)
+        python -m pip install tensorflow
+        ;;
+esac
 
 "${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir -r "${SCRIPT_DIR}/requirements.txt"
 
