@@ -59,12 +59,10 @@ fi
 source "${SCRIPT_DIR}/install_prerequisites.sh"
 
 # Install Python 3.14 if not available
-source "${SCRIPT_DIR}/install_python314.sh"
-
-PY=python3.14
+#source "${SCRIPT_DIR}/install_python314.sh"
 
 echo "Creating virtual environment..."
-$PY -m venv "${SCRIPT_DIR}/env"
+python -m venv "${SCRIPT_DIR}/env"
 
 echo "Installing requirements..."
 "${SCRIPT_DIR}/env/bin/python" -m pip install --upgrade pip
@@ -90,7 +88,7 @@ esac
 
 echo "Detected OS tag: $OS_TAG"
 
-$PY -m pip install "https://mirror-stg.odp.acceldata.dev/ODP/standalone/common_tars/tensorflow/tensorflow_cpu-2.22.0.dev0%2Bselfbuilt.${OS_TAG}-cp314-cp314-linux_x86_64.whl"
+python -m pip install "https://mirror-stg.odp.acceldata.dev/ODP/standalone/common_tars/tensorflow/tensorflow_cpu-2.22.0.dev0%2Bselfbuilt.${OS_TAG}-cp314-cp314-linux_x86_64.whl"
 
 "${SCRIPT_DIR}/env/bin/python" -m pip install --no-cache-dir -r "${SCRIPT_DIR}/requirements.txt"
 
