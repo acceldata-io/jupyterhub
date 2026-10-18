@@ -20,6 +20,64 @@ Contributors to major version bumps in JupyterHub include:
 
 ## [Unreleased]
 
+## 6.1
+
+### 6.1.0 - 2026-10-14
+
+6.1.0 is a small release, fixing some more regressions in 6.0 and adds a few new features.
+6.1.0 also fixes a collection of moderate severity vulnerabilities, all of which require valid authentication, and only one of which affects most JupyterHub deployments.
+These security fixes have all been backported to 5.5.3.
+All deployments are encouraged to upgrade to JupyterHub 5.5.3 or 6.1.0.
+
+Only this one affects most deployments:
+
+- [GHSA-hx46-2cv3-mh6g] - denial of service via invalid spawner options
+
+Others affect a small minority of deployments:
+
+- [GHSA-5jhc-4h3c-q97h] - Incomplete privilege drop in LocalProcessSpawner when `setgroups()` fails (rare)
+- [GHSA-93gc-h923-mp36] - Insufficient validation of user and service names in URL components (requires admin permissions OR unconstrained user-selected usernames)
+- [GHSA-r764-xgvf-jrfj] - SharedPasswordAuthenticator: missing username normalization (only affects deployments using SharedPasswordAuthenticator with `admin_users`)
+- [GHSA-pvm9-48cg-w76j] - `token_expires_in_max_seconds` not properly enforced when set (not default)
+
+And one is only exploitable by users who already have admin-level permissions:
+
+- [GHSA-x7xh-7hc7-9436] - missing validation on user rename API, leading to XSS
+
+([full changelog](https://github.com/jupyterhub/jupyterhub/compare/6.0.1...6.1.0))
+
+#### New features added
+
+- Add reconcile_auth_state_hook [#5557](https://github.com/jupyterhub/jupyterhub/pull/5557) ([@yuvipanda](https://github.com/yuvipanda), [@minrk](https://github.com/minrk))
+- Add Authenticator.auth_refresh_strict [#5500](https://github.com/jupyterhub/jupyterhub/pull/5500) ([@minrk](https://github.com/minrk), [@willingc](https://github.com/willingc))
+
+#### Bugs fixed
+
+- Set upper bound on token lengths [#5553](https://github.com/jupyterhub/jupyterhub/pull/5553) ([@minrk](https://github.com/minrk), [@manics](https://github.com/manics), [@willingc](https://github.com/willingc))
+- fix scope filter on POST /users/:name/tokens for services [#5554](https://github.com/jupyterhub/jupyterhub/pull/5554) ([@minrk](https://github.com/minrk), [@manics](https://github.com/manics))
+- fix one remaining tornado request in singleuser mixin [#5536](https://github.com/jupyterhub/jupyterhub/pull/5536) ([@minrk](https://github.com/minrk), [@manics](https://github.com/manics))
+- Fix _remove_process_files: transform url to socket path [#5535](https://github.com/jupyterhub/jupyterhub/pull/5535) ([@dometto](https://github.com/dometto), [@minrk](https://github.com/minrk))
+- Tag `oauth_require_pkce` with `config` [#5533](https://github.com/jupyterhub/jupyterhub/pull/5533) ([@lnicola](https://github.com/lnicola), [@minrk](https://github.com/minrk))
+
+#### Maintenance and upkeep improvements
+
+- try even more to reduce flaky browser tests [#5555](https://github.com/jupyterhub/jupyterhub/pull/5555) ([@minrk](https://github.com/minrk))
+- minor pytest cleanup [#5523](https://github.com/jupyterhub/jupyterhub/pull/5523) ([@minrk](https://github.com/minrk), [@manics](https://github.com/manics))
+- add agents.md preventing generated contributions [#5522](https://github.com/jupyterhub/jupyterhub/pull/5522) ([@minrk](https://github.com/minrk), [@Yann-P](https://github.com/Yann-P), [@willingc](https://github.com/willingc))
+
+#### Documentation improvements
+
+- add doc on idleness [#5529](https://github.com/jupyterhub/jupyterhub/pull/5529) ([@minrk](https://github.com/minrk), [@agoose77](https://github.com/agoose77), [@jnywong](https://github.com/jnywong), [@manics](https://github.com/manics), [@sarahw-earthscope](https://github.com/sarahw-earthscope), [@willingc](https://github.com/willingc))
+
+#### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyterhub/graphs/contributors?from=2026-09-14&to=2026-10-14&type=c))
+
+@agoose77 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aagoose77+updated%3A2026-09-14..2026-10-14&type=Issues)) | @benz0li ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Abenz0li+updated%3A2026-09-14..2026-10-14&type=Issues)) | @dometto ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Adometto+updated%3A2026-09-14..2026-10-14&type=Issues)) | @jnywong ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ajnywong+updated%3A2026-09-14..2026-10-14&type=Issues)) | @lnicola ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Alnicola+updated%3A2026-09-14..2026-10-14&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Amanics+updated%3A2026-09-14..2026-10-14&type=Issues)) | @meeseeksmachine ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ameeseeksmachine+updated%3A2026-09-14..2026-10-14&type=Issues)) | @minrk ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aminrk+updated%3A2026-09-14..2026-10-14&type=Issues)) | @sarahw-earthscope ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Asarahw-earthscope+updated%3A2026-09-14..2026-10-14&type=Issues)) | @willingc ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Awillingc+updated%3A2026-09-14..2026-10-14&type=Issues)) | @Yann-P ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3AYann-P+updated%3A2026-09-14..2026-10-14&type=Issues)) | @yuvipanda ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ayuvipanda+updated%3A2026-09-14..2026-10-14&type=Issues))
+
 ## 6.0
 
 ### 6.0.1 - 2026-09-14
@@ -178,6 +236,52 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 @agoose77 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aagoose77+updated%3A2025-10-24..2026-09-01&type=Issues)) | @anny0811 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aanny0811+updated%3A2025-10-24..2026-09-01&type=Issues)) | @ateucher ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aateucher+updated%3A2025-10-24..2026-09-01&type=Issues)) | @betatim ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Abetatim+updated%3A2025-10-24..2026-09-01&type=Issues)) | @bl-aire ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Abl-aire+updated%3A2025-10-24..2026-09-01&type=Issues)) | @clhedrick ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aclhedrick+updated%3A2025-10-24..2026-09-01&type=Issues)) | @consideRatio ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3AconsideRatio+updated%3A2025-10-24..2026-09-01&type=Issues)) | @dometto ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Adometto+updated%3A2025-10-24..2026-09-01&type=Issues)) | @dragz ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Adragz+updated%3A2025-10-24..2026-09-01&type=Issues)) | @erawn ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aerawn+updated%3A2025-10-24..2026-09-01&type=Issues)) | @ericvd-ucb ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aericvd-ucb+updated%3A2025-10-24..2026-09-01&type=Issues)) | @jezwilkinson ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ajezwilkinson+updated%3A2025-10-24..2026-09-01&type=Issues)) | @jnywong ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ajnywong+updated%3A2025-10-24..2026-09-01&type=Issues)) | @jrdnbradford ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ajrdnbradford+updated%3A2025-10-24..2026-09-01&type=Issues)) | @kellyrowland ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Akellyrowland+updated%3A2025-10-24..2026-09-01&type=Issues)) | @kreuzert ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Akreuzert+updated%3A2025-10-24..2026-09-01&type=Issues)) | @LUC4R4T0R ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3ALUC4R4T0R+updated%3A2025-10-24..2026-09-01&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Amanics+updated%3A2025-10-24..2026-09-01&type=Issues)) | @milliams ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Amilliams+updated%3A2025-10-24..2026-09-01&type=Issues)) | @minrk ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aminrk+updated%3A2025-10-24..2026-09-01&type=Issues)) | @mynkyu ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Amynkyu+updated%3A2025-10-24..2026-09-01&type=Issues)) | @nsychev ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ansychev+updated%3A2025-10-24..2026-09-01&type=Issues)) | @Paul2708 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3APaul2708+updated%3A2025-10-24..2026-09-01&type=Issues)) | @Rameshkumar31595 ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3ARameshkumar31595+updated%3A2025-10-24..2026-09-01&type=Issues)) | @rgaiacs ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Argaiacs+updated%3A2025-10-24..2026-09-01&type=Issues)) | @shaneknapp ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ashaneknapp+updated%3A2025-10-24..2026-09-01&type=Issues)) | @sixonenines ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Asixonenines+updated%3A2025-10-24..2026-09-01&type=Issues)) | @tbizouerne ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Atbizouerne+updated%3A2025-10-24..2026-09-01&type=Issues)) | @Tech-Abhang ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3ATech-Abhang+updated%3A2025-10-24..2026-09-01&type=Issues)) | @wilkinvr ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Awilkinvr+updated%3A2025-10-24..2026-09-01&type=Issues)) | @willingc ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Awillingc+updated%3A2025-10-24..2026-09-01&type=Issues)) | @yuvipanda ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Ayuvipanda+updated%3A2025-10-24..2026-09-01&type=Issues))
 
 ## 5.5
+
+### 5.5.3 - 2026-10-14
+
+5.5.3 is a security backport release, fixing a collection of moderate severity vulnerabilities, all of which require valid authentication, and only one of which affects most JupyterHub deployments.
+All deployments are encouraged to upgrade to JupyterHub 5.5.3 or 6.1.0.
+
+Only this one affects most deployments:
+
+- [GHSA-hx46-2cv3-mh6g] - denial of service via invalid spawner options
+
+Others affect a small minority of deployments:
+
+- [GHSA-5jhc-4h3c-q97h] - Incomplete privilege drop in LocalProcessSpawner when `setgroups()` fails (rare)
+- [GHSA-93gc-h923-mp36] - Insufficient validation of user and service names in URL components (requires admin permissions OR unconstrained user-selected usernames)
+- [GHSA-r764-xgvf-jrfj] - SharedPasswordAuthenticator: missing username normalization (only affects deployments using SharedPasswordAuthenticator with `admin_users`)
+- [GHSA-pvm9-48cg-w76j] - `token_expires_in_max_seconds` not properly enforced when set (not default)
+
+And one is only exploitable by users who already have admin-level permissions:
+
+- [GHSA-x7xh-7hc7-9436] - missing validation on user rename API, leading to XSS
+
+[GHSA-hx46-2cv3-mh6g]: https://github.com/jupyterhub/jupyterhub/security/advisories/GHSA-hx46-2cv3-mh6g
+[GHSA-5jhc-4h3c-q97h]: https://github.com/jupyterhub/jupyterhub/security/advisories/GHSA-5jhc-4h3c-q97h
+[GHSA-93gc-h923-mp36]: https://github.com/jupyterhub/jupyterhub/security/advisories/GHSA-93gc-h923-mp36
+[GHSA-r764-xgvf-jrfj]: https://github.com/jupyterhub/jupyterhub/security/advisories/GHSA-r764-xgvf-jrfj
+[GHSA-pvm9-48cg-w76j]: https://github.com/jupyterhub/jupyterhub/security/advisories/GHSA-pvm9-48cg-w76j
+[GHSA-x7xh-7hc7-9436]: https://github.com/jupyterhub/jupyterhub/security/advisories/GHSA-x7xh-7hc7-9436
+
+#### Bugs fixed
+
+- Set upper bound on token lengths [#5553](https://github.com/jupyterhub/jupyterhub/pull/5553) ([@minrk](https://github.com/minrk), [@manics](https://github.com/manics), [@willingc](https://github.com/willingc))
+- fix scope filter on POST /users/:name/tokens for services [#5554](https://github.com/jupyterhub/jupyterhub/pull/5554) ([@minrk](https://github.com/minrk), [@manics](https://github.com/manics))
+
+#### Maintenance and upkeep improvements
+
+- try even more to reduce flaky browser tests [#5555](https://github.com/jupyterhub/jupyterhub/pull/5555) ([@minrk](https://github.com/minrk))
+- try to improve browser test waiting and reporting [#5513](https://github.com/jupyterhub/jupyterhub/pull/5513) ([@minrk](https://github.com/minrk), [@krassowski](https://github.com/krassowski), [@manics](https://github.com/manics))
+
+#### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/jupyterhub/jupyterhub/graphs/contributors?from=2026-09-14&to=2026-10-14&type=c))
+
+@krassowski ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Akrassowski+updated%3A2026-09-14..2026-10-14&type=Issues)) | @manics ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Amanics+updated%3A2026-09-14..2026-10-14&type=Issues)) | @minrk ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Aminrk+updated%3A2026-09-14..2026-10-14&type=Issues)) | @willingc ([activity](https://github.com/search?q=repo%3Ajupyterhub%2Fjupyterhub+involves%3Awillingc+updated%3A2026-09-14..2026-10-14&type=Issues))
 
 ### 5.5.2 - 2026-09-01
 
