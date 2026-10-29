@@ -55,13 +55,35 @@ if [ -f /etc/os-release ]; then
     fi
 fi
 
+# Bigtop passes PYTHON_VER (python3.11 / python3.12). EL10 has no python3.11
+# package. python -m venv records the interpreter's absolute path, so a venv
+# built with a /usr/local python3.11 cannot start on a RHEL10 host.
+select_python() {
+    local py="${PYTHON_VER:-python3.11}"
+    local os_id="" os_major=""
+    if [ -f /etc/os-release ]; then
+        os_id="$(. /etc/os-release && printf '%s' "${ID}")"
+        os_major="$(. /etc/os-release && printf '%s' "${VERSION_ID%%.*}")"
+    fi
+    case "${os_id}" in
+        rhel|centos|rocky|almalinux|ol|oraclelinux)
+            if [ "${os_major}" = "10" ] && [ "${py}" != "python3.12" ]; then
+                echo "RHEL ${os_major} ships Python 3.12 only; using python3.12 instead of ${py}"
+                py="python3.12"
+            fi
+            ;;
+    esac
+    PY="${py}"
+    export PYTHON_VER="${PY}"
+    echo "Selected Python: ${PY}"
+}
+select_python
+
 # Install prerequisites
 bash "${SCRIPT_DIR}/install_prerequisites.sh"
 
-# Install Python 3.11 if not available
+# Install the selected interpreter if it is not already available
 bash "${SCRIPT_DIR}/install_python311.sh"
-
-PY=python3.11
 
 echo "Creating virtual environment..."
 $PY -m venv "${SCRIPT_DIR}/env"
@@ -175,6 +197,15 @@ echo ""
 # =============================================================================
 # PACK TARBALL
 # =============================================================================
+# Pip writes "#!/usr/bin/env python" for some entry points. EL10 has
+# python3.12 and no unversioned python, so those scripts fail at exec.
+echo "Pointing entry points at ${PY}..."
+while IFS= read -r -d '' script; do
+    if head -n 1 "${script}" | grep -qx '#!/usr/bin/env python'; then
+        sed -i "1s|#!/usr/bin/env python|#!/usr/bin/env ${PY}|" "${script}"
+    fi
+done < <(find "${SCRIPT_DIR}/env/bin" -type f -print0)
+
 echo "Packing environment..."
 # venv-pack must run from within the activated environment
 source "${SCRIPT_DIR}/env/bin/activate"
