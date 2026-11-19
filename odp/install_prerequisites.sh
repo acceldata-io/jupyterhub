@@ -22,10 +22,13 @@ case "${OS_ID}" in
         echo "Detected ${OS_ID} - using yum/dnf..."
         
         echo "Installing libcurl-devel..."
-        sudo yum install -y libcurl-devel
+        sudo yum install -y --nobest libcurl-devel
 
+        # --nobest: the base repos can carry a newer gcc than the matching
+        # libgcc/libgomp/libstdc++, which makes dnf fail on an unsatisfiable
+        # "best candidate" even though the installed toolchain is adequate.
         echo "Installing build tools..."
-        sudo yum install -y gcc gcc-c++ make automake autoconf libtool kernel-devel patch
+        sudo yum install -y --nobest gcc gcc-c++ make automake autoconf libtool kernel-devel patch
         ;;
     ubuntu|debian)
         echo "Detected ${OS_ID} - using apt..."
